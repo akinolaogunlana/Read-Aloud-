@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms of Use — Read Aloud</title>
+<meta name="description" content="Terms of use for the Read Aloud document and manuscript read-aloud tool."/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://example.com/terms.html"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Inter:wght@400;500;600&display=swap');
+  :root{ --paper:#F5F3EE; --ink:#1E1C19; --ink-soft:#57534A; --rule:#DDD8CC; --accent:#2E3454; }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Inter',system-ui,sans-serif; }
+  .wrap{ max-width:680px; margin:0 auto; padding:56px 24px 100px; }
+  a{ color:var(--accent); }
+  .back{ font-size:13px; margin-bottom:28px; display:inline-block; }
+  h1{ font-family:'Source Serif 4',serif; font-size:32px; margin:0 0 6px; }
+  .updated{ font-size:12.5px; color:var(--ink-soft); margin-bottom:36px; }
+  h2{ font-family:'Inter',sans-serif; font-size:16px; margin:32px 0 10px; }
+  p, li{ font-size:14.5px; line-height:1.75; color:var(--ink-soft); }
+  ul{ padding-left:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Back to Read Aloud</a>
+  <h1>Terms of Use</h1>
+  <p class="updated">Last updated: <span id="d"></span></p>
+
+  <h2>Using this tool</h2>
+  <p>Read Aloud is provided free of charge for personal, educational, and business proofreading use. By using this site, you agree to these terms.</p>
+
+  <h2>No warranty</h2>
+  <p>This tool is provided "as is," without warranty of any kind. Text-to-speech, and the automatic parsing of TXT, Markdown, DOCX, PDF, and EPUB files, may occasionally misread, mis-highlight, or fail to extract text correctly — always verify your final manuscript independently before publishing. This tool is an aid for proofreading, not a substitute for a full editorial or proofreading pass.</p>
+
+  <h2>Your content</h2>
+  <p>Files you upload are processed locally in your browser and are not transmitted to or stored by this site. You retain all rights to any content you upload. See the <a href="privacy.html">Privacy Policy</a> for details.</p>
+
+  <h2>Intellectual property</h2>
+  <p>The code, design, and branding of this tool are protected — see <a href="LICENSE.txt">LICENSE.txt</a> for what is and isn't permitted. Third-party libraries used by this tool remain under their own respective licenses.</p>
+
+  <h2>Advertising</h2>
+  <p>This site may display third-party advertising. Ads are served by independent ad networks and are not endorsements by this site of any advertised product or service.</p>
+
+  <h2>Changes</h2>
+  <p>These terms may be updated from time to time. Continued use of the site after changes constitutes acceptance of the updated terms.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about these terms can be sent to the contact address listed on the main site.</p>
+</div>
+<script>document.getElementById('d').textContent = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});</script>
+</body>
+</html>
