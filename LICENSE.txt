@@ -1,0 +1,34 @@
+Read Aloud — Document & Manuscript Proofreading Tool
+Copyright (c) 2026 Ogunlana Akinola Okikiola. All rights reserved.
+
+This source code is publicly viewable because it runs client-side in your
+browser — that is unavoidable for any tool built this way, and viewing it
+is expected and fine.
+
+What is NOT permitted without prior written permission from the copyright
+holder:
+
+  1. Copying, redistributing, or hosting this code (in whole or in
+     substantial part) on another site or product.
+  2. Reselling, sublicensing, or offering this tool or a modified version
+     of it as your own commercial product or service.
+  3. Removing or altering this notice or the copyright header in
+     read-aloud-engine.js.
+
+What IS permitted:
+
+  1. Using the hosted tool at its official URL for personal, educational,
+     or business proofreading purposes, free of charge.
+  2. Viewing the source for learning purposes.
+  3. Linking to the official site.
+
+Third-party components loaded by this tool (Mammoth.js, PDF.js, JSZip,
+Google Fonts) remain under their own respective open-source licenses and
+are not covered by this notice — see each project's own license for terms
+governing that code specifically:
+  - Mammoth.js:  https://github.com/mwilliamson/mammoth.js
+  - PDF.js:      https://github.com/mozilla/pdf.js
+  - JSZip:       https://github.com/Stuk/jszip
+
+For permission requests or licensing questions, contact the address listed
+on the official site.

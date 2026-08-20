@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — Read Aloud</title>
+<meta name="description" content="Privacy policy for the Read Aloud manuscript proofreading tool: what data is (and isn't) collected, how files are processed, and how advertising and cookies work on this site."/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://example.com/privacy.html"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Inter:wght@400;500;600&display=swap');
+  :root{
+    --paper:#F5F3EE; --ink:#1E1C19; --ink-soft:#57534A; --rule:#DDD8CC; --accent:#2E3454;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .wrap{ max-width:680px; margin:0 auto; padding:56px 24px 100px; }
+  a{ color:var(--accent); }
+  .back{ font-size:13px; margin-bottom:28px; display:inline-block; }
+  h1{ font-family:'Source Serif 4',serif; font-size:32px; margin:0 0 6px; }
+  .updated{ font-size:12.5px; color:var(--ink-soft); margin-bottom:36px; }
+  h2{ font-family:'Inter',sans-serif; font-size:16px; margin:32px 0 10px; }
+  p, li{ font-size:14.5px; line-height:1.75; color:var(--ink-soft); }
+  ul{ padding-left:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Back to Read Aloud</a>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: <span id="d"></span></p>
+
+  <h2>What this site is</h2>
+  <p>Read Aloud is a free browser-based tool that reads uploaded manuscripts aloud with paragraph-by-paragraph highlighting, for proofreading purposes. This policy explains what happens to your data when you use it.</p>
+
+  <h2>Files you upload</h2>
+  <p>Files you upload (TXT, Markdown, DOCX, PDF, or EPUB) are processed entirely inside your own browser. They are never transmitted to, stored on, or seen by any server operated by this site. Closing the browser tab or reloading the page permanently discards the file — there is no server-side copy, backup, or account to sync it to.</p>
+
+  <h2>Text-to-speech</h2>
+  <p>Reading the text aloud uses your device's built-in speech synthesis (the Web Speech API). This runs locally in your browser or operating system. No audio or text is sent to this site's servers as part of that process.</p>
+
+  <h2>Third-party libraries and fonts</h2>
+  <p>This page loads the following third-party resources from their own content delivery networks, which is standard for a browser-based tool like this:</p>
+  <ul>
+    <li>Mammoth.js (for reading .docx files) — loaded from cdnjs.cloudflare.com</li>
+    <li>PDF.js (for reading .pdf files) — loaded from cdnjs.cloudflare.com</li>
+    <li>JSZip (for reading .epub files) — loaded from cdnjs.cloudflare.com</li>
+    <li>Google Fonts (Source Serif 4, Inter, JetBrains Mono) — loaded from fonts.googleapis.com</li>
+  </ul>
+  <p>Loading these resources means your browser makes a direct request to Cloudflare's and Google's servers, which may log standard technical information such as your IP address, as any web request does. Your document content is not sent to these services — they are only used to load the code and fonts needed to run the page.</p>
+
+  <h2>Advertising and cookies</h2>
+  <p>This site may display advertising served by Google AdSense or a similar third-party ad network. If so:</p>
+  <ul>
+    <li>Google and its advertising partners may use cookies or similar technologies to serve ads based on your prior visits to this and other websites.</li>
+    <li>You can opt out of personalized advertising by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google's Ads Settings</a>, or generally at <a href="https://www.aboutads.info/choices" target="_blank" rel="noopener">aboutads.info/choices</a>.</li>
+    <li>This site does not control what data ad networks collect through their cookies. Please refer to <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google's advertising policy</a> for details on how Google uses this data.</li>
+  </ul>
+
+  <h2>No accounts, no tracking of manuscript content</h2>
+  <p>This site does not require account creation, does not use analytics to track what you upload or what your document contains, and does not build a profile of your reading or writing activity.</p>
+
+  <h2>Children's privacy</h2>
+  <p>This site is not directed at children under 13, and we do not knowingly collect personal information from children.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the "last updated" date at the top of this page will change accordingly.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy can be sent to the contact address listed on the main site.</p>
+</div>
+<script>document.getElementById('d').textContent = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});</script>
+</body>
+</html>
