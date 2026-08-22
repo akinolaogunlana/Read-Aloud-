@@ -15,40 +15,65 @@
 const compat = {
   fileReading: typeof FileReader !== 'undefined',
   arrayBuffer: typeof ArrayBuffer !== 'undefined',
-  speech: 'speechSynthesis' in window,
-  mammoth: false,
-  pdfjs: false,
-  jszip: false
+  speech: 'speechSynthesis' in window
 };
 
 function renderCompatPanel(){
   const rows = document.getElementById('compatRows');
   const items = [
     {label: 'Read files from your device', ok: compat.fileReading},
-    {label: 'Word (.docx) parsing library loaded', ok: compat.mammoth, warnIfFalse:true},
-    {label: 'PDF parsing library loaded', ok: compat.pdfjs, warnIfFalse:true},
-    {label: 'EPUB parsing library loaded', ok: compat.jszip, warnIfFalse:true},
+    {label: 'Word (.docx) parsing', ok: true, note:'Loads automatically the first time you open a .docx'},
+    {label: 'PDF parsing', ok: true, note:'Loads automatically the first time you open a .pdf'},
+    {label: 'EPUB parsing', ok: true, note:'Loads automatically the first time you open an .epub'},
     {label: 'Text-to-speech (Web Speech API)', ok: compat.speech},
   ];
   rows.innerHTML = items.map(it => {
-    const cls = it.ok ? 'ok' : (it.warnIfFalse ? 'warn' : 'bad');
-    const msg = it.ok ? 'Available' : (it.warnIfFalse ? 'Still loading / unavailable — that format will be disabled' : 'Not supported in this browser');
+    const cls = it.ok ? 'ok' : 'bad';
+    const msg = it.note ? it.note : (it.ok ? 'Available' : 'Not supported in this browser');
     return `<div class="compat-row"><span class="dot ${cls}"></span><span>${it.label} — <strong>${msg}</strong></span></div>`;
   }).join('');
 }
 renderCompatPanel();
 
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    compat.mammoth = (typeof mammoth !== 'undefined');
-    compat.pdfjs = (typeof pdfjsLib !== 'undefined');
-    compat.jszip = (typeof JSZip !== 'undefined');
-    if(compat.pdfjs){
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-    renderCompatPanel();
-  }, 600);
-});
+// Libraries load on demand (only when a matching file type is actually
+// opened) rather than on every page visit -- keeps first load fast for
+// everyone, since most visitors only ever use one format at a time.
+const _scriptCache = {};
+function loadScriptOnce(url){
+  if(_scriptCache[url]) return _scriptCache[url];
+  _scriptCache[url] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = () => resolve(true);
+    s.onerror = () => reject(new Error('Failed to load ' + url));
+    document.head.appendChild(s);
+  });
+  return _scriptCache[url];
+}
+
+const LIB_URLS = {
+  mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js',
+  pdfjs: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfjsWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+};
+
+async function ensureMammoth(){
+  if(typeof mammoth === 'undefined') await loadScriptOnce(LIB_URLS.mammoth);
+  return typeof mammoth !== 'undefined';
+}
+async function ensurePdfjs(){
+  if(typeof pdfjsLib === 'undefined') await loadScriptOnce(LIB_URLS.pdfjs);
+  if(typeof pdfjsLib !== 'undefined'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = LIB_URLS.pdfjsWorker;
+    return true;
+  }
+  return false;
+}
+async function ensureJszip(){
+  if(typeof JSZip === 'undefined') await loadScriptOnce(LIB_URLS.jszip);
+  return typeof JSZip !== 'undefined';
+}
 
 /* ============================================================
    PARSING: turn any supported file into SECTIONS[] of BLOCKS[]
@@ -321,8 +346,11 @@ async function handleFile(file){
       loadDocument(baseName, sections);
 
     } else if(ext === 'docx'){
-      if(typeof mammoth === 'undefined'){
-        showError('The Word-document parser hasn\'t finished loading (or failed to load — check your internet connection). Please wait a moment and try again.');
+      showParsing('Loading Word-document parser…');
+      const gotMammoth = await ensureMammoth();
+      if(!gotMammoth){
+        hideParsing();
+        showError('Could not load the Word-document parser — check your internet connection and try again.');
         return;
       }
       showParsing('Converting Word document…');
@@ -333,8 +361,11 @@ async function handleFile(file){
       loadDocument(baseName, sections);
 
     } else if(ext === 'pdf'){
-      if(typeof pdfjsLib === 'undefined'){
-        showError('The PDF parser hasn\'t finished loading (or failed to load — check your internet connection). Please wait a moment and try again.');
+      showParsing('Loading PDF parser…');
+      const gotPdfjs = await ensurePdfjs();
+      if(!gotPdfjs){
+        hideParsing();
+        showError('Could not load the PDF parser — check your internet connection and try again.');
         return;
       }
       showParsing('Extracting text from PDF (this can take a moment for long files)…');
@@ -344,8 +375,11 @@ async function handleFile(file){
       loadDocument(baseName, sections);
 
     } else if(ext === 'epub'){
-      if(typeof JSZip === 'undefined'){
-        showError('The EPUB parser hasn\'t finished loading (or failed to load — check your internet connection). Please wait a moment and try again.');
+      showParsing('Loading EPUB parser…');
+      const gotJszip = await ensureJszip();
+      if(!gotJszip){
+        hideParsing();
+        showError('Could not load the EPUB parser — check your internet connection and try again.');
         return;
       }
       showParsing('Unpacking EPUB…');
@@ -363,6 +397,84 @@ async function handleFile(file){
     console.error(err);
   }
 }
+
+/* ============================================================
+   READ FROM A URL
+   Uses Jina AI's free Reader API (r.jina.ai) to fetch and extract
+   clean article text from an arbitrary web page -- this is
+   necessary because browsers block direct cross-site fetches
+   (CORS) for almost every website, so a client-side tool can't
+   just download an arbitrary page's HTML on its own.
+   NOTE: this is the one feature where the URL you enter is sent
+   to a third party (Jina AI) so it can fetch the page on your
+   behalf. File uploads elsewhere on this page are unaffected and
+   never leave your browser.
+   ============================================================ */
+function normalizeUrl(raw){
+  let u = raw.trim();
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  try{
+    return new URL(u).toString();
+  }catch(e){
+    return null;
+  }
+}
+
+async function fetchArticleFromUrl(rawUrl){
+  clearError();
+  const url = normalizeUrl(rawUrl);
+  if(!url){
+    showError('That doesn\'t look like a valid web address. Try something like https://example.com/article-name.');
+    return;
+  }
+
+  const urlGoBtn = document.getElementById('urlGoBtn');
+  urlGoBtn.disabled = true;
+  showParsing('Fetching and extracting article text…');
+
+  try{
+    const readerUrl = 'https://r.jina.ai/' + url;
+    const resp = await fetch(readerUrl, { headers: { 'Accept': 'text/plain' } });
+    if(!resp.ok){
+      throw new Error('The extraction service returned an error (status ' + resp.status + ').');
+    }
+    const text = await resp.text();
+    if(!text || text.trim().length < 40){
+      throw new Error('No readable article content was found at that link.');
+    }
+
+    let title;
+    const titleMatch = text.match(/^Title:\s*(.+)$/mi) || text.match(/^#\s+(.+)$/m);
+    if(titleMatch){
+      title = titleMatch[1].trim();
+    } else {
+      try{ title = new URL(url).hostname.replace(/^www\./,''); }
+      catch(e){ title = 'Article'; }
+    }
+
+    const sections = parsePlainText(text, true, title);
+    hideParsing();
+    loadDocument(title, sections);
+
+  } catch(err){
+    hideParsing();
+    showError('Could not fetch that article: ' + (err && err.message ? err.message : 'unknown error') + ' Some sites block automated extraction, or may require a direct file upload instead.');
+    console.error(err);
+  } finally {
+    urlGoBtn.disabled = false;
+  }
+}
+
+document.getElementById('urlGoBtn').addEventListener('click', () => {
+  const input = document.getElementById('urlInput');
+  if(input.value.trim()) fetchArticleFromUrl(input.value);
+});
+document.getElementById('urlInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    if(e.target.value.trim()) fetchArticleFromUrl(e.target.value);
+  }
+});
 
 /* ============================================================
    READER (same engine as before, now fed by any parsed document)
@@ -393,6 +505,118 @@ const speedSelect = document.getElementById('speedSelect');
 const voiceSelect = document.getElementById('voiceSelect');
 const sidebarFooter = document.getElementById('sidebarFooter');
 
+/* ============================================================
+   SMART ANALYSIS
+   Runs entirely locally (pattern-matching + a standard readability
+   formula) -- no AI/cloud service, no data leaves the browser for
+   any of this. Separate from the URL-reading feature above, which
+   does use a third-party service for a different reason (fetching).
+   ============================================================ */
+
+function countSyllables(word){
+  word = word.toLowerCase().replace(/[^a-z]/g, '');
+  if(word.length === 0) return 0;
+  if(word.length <= 3) return 1;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const matches = word.match(/[aeiouy]{1,2}/g);
+  return matches ? matches.length : 1;
+}
+
+function computeReadability(fullText){
+  const words = (fullText.match(/[A-Za-z][A-Za-z'-]*/g) || []);
+  const sentenceSplits = fullText.match(/[^.!?]+[.!?]+/g);
+  const sentenceCount = Math.max(1, sentenceSplits ? sentenceSplits.length : 1);
+  const wordCount = Math.max(1, words.length);
+  const syllableCount = words.reduce((sum, w) => sum + countSyllables(w), 0);
+
+  const wordsPerSentence = wordCount / sentenceCount;
+  const syllablesPerWord = syllableCount / wordCount;
+
+  const ease = 206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord;
+  const grade = 0.39 * wordsPerSentence + 11.8 * syllablesPerWord - 15.59;
+
+  let label, cls;
+  if(ease >= 60){ label = 'Easy to read'; cls = 'easy'; }
+  else if(ease >= 30){ label = 'Standard difficulty'; cls = 'standard'; }
+  else { label = 'Dense / academic'; cls = 'hard'; }
+
+  return {
+    wordCount, sentenceCount,
+    ease: Math.max(0, Math.round(ease)),
+    grade: Math.max(0, Math.round(grade * 10) / 10),
+    label, cls
+  };
+}
+
+// Conservative, low-false-positive mechanical issue detection.
+// Anything flagged here is worth a human's eyes -- these are hints,
+// not automatic corrections.
+function detectMechanicalIssues(text){
+  const issues = [];
+
+  const dupMatch = text.match(/\b(\w+)\s+\1\b/gi);
+  if(dupMatch) issues.push('repeated word: "' + dupMatch[0].split(/\s+/)[0] + '"');
+
+  if(/ {2,}/.test(text)) issues.push('double space');
+
+  if(/\s[.,;:!?]/.test(text)) issues.push('space before punctuation');
+
+  if(/[a-z][.,][A-Z]/.test(text)) issues.push('possible missing space after punctuation');
+
+  const wordCount = (text.match(/\S+/g) || []).length;
+  if(wordCount > 55) issues.push('very long sentence/paragraph (' + wordCount + ' words) -- consider splitting');
+
+  return issues;
+}
+
+function runSmartAnalysis(){
+  let totalIssueCount = 0;
+  const fullText = SECTIONS.map(s => s.blocks.map(b => b.text).join(' ')).join(' ');
+  const readability = computeReadability(fullText);
+
+  SECTIONS.forEach(s => {
+    s.blocks.forEach(b => {
+      if(b.type === 'h3'){ b.issues = []; return; }
+      b.issues = detectMechanicalIssues(b.text);
+      totalIssueCount += b.issues.length;
+    });
+  });
+
+  return { readability, totalIssueCount };
+}
+
+function renderInsightsPanel(analysis){
+  const panel = document.getElementById('insightsPanel');
+  if(!panel) return;
+  const wpm = 155; // average adult reading-aloud pace, for a rough time estimate
+  const minutes = Math.max(1, Math.round(analysis.readability.wordCount / wpm));
+
+  panel.innerHTML = `
+    <div class="insights-title">Document insights</div>
+    <span class="readability-badge ${analysis.readability.cls}">${analysis.readability.label}</span>
+    <div class="insights-grid">
+      <div class="insight-stat"><span class="insight-num">${analysis.readability.wordCount.toLocaleString()}</span><span class="insight-label">Words</span></div>
+      <div class="insight-stat"><span class="insight-num">~${minutes} min</span><span class="insight-label">To read aloud</span></div>
+      <div class="insight-stat"><span class="insight-num">Grade ${analysis.readability.grade}</span><span class="insight-label">Reading level</span></div>
+      <div class="insight-stat"><span class="insight-num">${analysis.totalIssueCount}</span><span class="insight-label">Auto-flagged spots</span></div>
+    </div>
+    <label class="auto-flag-toggle">
+      <input type="checkbox" id="autoFlagToggle" ${autoFlagEnabled ? 'checked' : ''}/>
+      Highlight likely issues automatically
+    </label>
+  `;
+  const toggle = document.getElementById('autoFlagToggle');
+  if(toggle){
+    toggle.addEventListener('change', (e) => {
+      autoFlagEnabled = e.target.checked;
+      renderSectionText();
+    });
+  }
+}
+
+let autoFlagEnabled = true;
+
 function loadDocument(title, sections){
   DOC_TITLE = title;
   SECTIONS = sections.filter(s => s.blocks.length > 0 || s.title);
@@ -405,8 +629,22 @@ function loadDocument(title, sections){
   playbar.classList.add('active');
 
   docTitleLabel.textContent = title;
-  const totalWords = SECTIONS.reduce((sum, s) => sum + s.blocks.reduce((a,b)=>a+b.text.split(' ').length,0), 0);
-  sidebarFooter.textContent = SECTIONS.length + ' section' + (SECTIONS.length===1?'':'s') + ' · ~' + totalWords.toLocaleString() + ' words';
+  sidebarFooter.textContent = SECTIONS.length + ' section' + (SECTIONS.length===1?'':'s');
+
+  const analysis = runSmartAnalysis();
+  renderInsightsPanel(analysis);
+
+  // Auto-detected mechanical issues get pre-populated into the flagged
+  // list too, so "Export flagged lines" includes them alongside anything
+  // manually flagged while listening.
+  SECTIONS.forEach(s => {
+    s.blocks.forEach(b => {
+      if(b.issues && b.issues.length){
+        flaggedIssues.push({section: s.title, text: b.text, auto: true, reasons: b.issues});
+      }
+    });
+  });
+  updateFlagUI();
 
   renderSectionList();
   loadSection(0, true);
@@ -454,6 +692,14 @@ function renderSectionText(){
     el.className = 'block';
     el.id = 'block-' + i;
     el.innerHTML = b.html;
+
+    if(autoFlagEnabled && b.issues && b.issues.length){
+      el.classList.add('auto-issue');
+      el.title = 'Possible issue: ' + b.issues.join('; ');
+    }
+    const alreadyFlagged = flaggedIssues.some(f => f.section === s.title && f.text === b.text);
+    if(alreadyFlagged) el.classList.add('flagged');
+
     readingInner.appendChild(el);
   });
 }
@@ -507,7 +753,23 @@ function populateVoices(){
     const opt = document.createElement('option');
     opt.textContent = 'No voices available';
     voiceSelect.appendChild(opt);
+    return;
   }
+
+  // Smart default: browsers list voices in an arbitrary order, and the
+  // first one is often a low-quality legacy voice. Prefer names that
+  // typically indicate a higher-quality neural/online voice.
+  const qualityHints = ['natural', 'neural', 'premium', 'enhanced', 'online', 'wavenet'];
+  let bestIdx = 0;
+  let bestScore = -1;
+  voices.forEach((v, i) => {
+    const name = v.name.toLowerCase();
+    let score = 0;
+    qualityHints.forEach(hint => { if(name.includes(hint)) score += 1; });
+    if(v.localService === false) score += 0.5; // cloud voices often sound better
+    if(score > bestScore){ bestScore = score; bestIdx = i; }
+  });
+  voiceSelect.value = bestIdx;
 }
 
 function speakFrom(blockIdx){
@@ -585,27 +847,41 @@ readingInner.addEventListener('click', (e) => {
 
 document.getElementById('btnFlag').onclick = () => flagCurrentBlock();
 
+function updateFlagUI(){
+  const badge = document.getElementById('flagBadge');
+  if(badge){
+    badge.textContent = flaggedIssues.length;
+    badge.classList.toggle('show', flaggedIssues.length > 0);
+  }
+  const exportLink = document.getElementById('exportLink');
+  const flagCount = document.getElementById('flagCount');
+  if(exportLink){
+    exportLink.style.display = flaggedIssues.length > 0 ? 'inline-block' : 'none';
+    flagCount.textContent = flaggedIssues.length;
+  }
+}
+
 function flagCurrentBlock(){
   if(currentBlock < 0) return;
   const s = SECTIONS[currentSection];
   const block = s.blocks[currentBlock];
   if(!block) return;
-  flaggedIssues.push({section: s.title, text: block.text});
+  flaggedIssues.push({section: s.title, text: block.text, auto: false});
   const el = document.getElementById('block-' + currentBlock);
   if(el) el.classList.add('flagged');
-  const badge = document.getElementById('flagBadge');
-  if(badge){ badge.textContent = flaggedIssues.length; badge.classList.add('show'); }
-  const exportLink = document.getElementById('exportLink');
-  const flagCount = document.getElementById('flagCount');
-  if(exportLink){ exportLink.style.display = 'inline-block'; flagCount.textContent = flaggedIssues.length; }
+  updateFlagUI();
   announce('Flagged. ' + flaggedIssues.length + ' line' + (flaggedIssues.length===1?'':'s') + ' flagged so far.');
 }
 
 document.getElementById('exportLink').onclick = () => {
   if(flaggedIssues.length === 0) return;
-  let out = `Flagged lines — ${DOC_TITLE}\nExported ${new Date().toLocaleString()}\n\n`;
+  const autoCount = flaggedIssues.filter(f => f.auto).length;
+  const manualCount = flaggedIssues.length - autoCount;
+  let out = `Flagged lines — ${DOC_TITLE}\nExported ${new Date().toLocaleString()}\n`;
+  out += `${manualCount} manually flagged, ${autoCount} auto-detected\n\n`;
   flaggedIssues.forEach((f, i) => {
-    out += `${i+1}. [${f.section}]\n${f.text}\n\n`;
+    const tag = f.auto ? `[auto-detected: ${f.reasons.join('; ')}]` : '[manually flagged]';
+    out += `${i+1}. [${f.section}] ${tag}\n${f.text}\n\n`;
   });
   const blob = new Blob([out], {type: 'text/plain'});
   const url = URL.createObjectURL(blob);

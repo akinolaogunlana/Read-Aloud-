@@ -9,7 +9,6 @@
 <meta name="keywords" content="read aloud manuscript, proofread ebook, text to speech for authors, epub reader tool, self publishing proofreading, listen to my manuscript, docx text to speech, pdf read aloud, free text to speech tool, book proofreading tool, read my document aloud, text to speech for editors, proofread thesis aloud, listen to my writing"/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://readaloudproofreader.vercel.app/"/>
-<link rel="canonical" href="https://readaloudproofreader.vercel.app/sitemap.xml"/>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website"/>
@@ -17,7 +16,7 @@
 <meta property="og:description" content="Upload any TXT, MD, DOCX, PDF, or EPUB document and hear it read back to you with line-by-line highlighting. Free, private, runs entirely in your browser."/>
 <meta property="og:url" content="https://readaloudproofreader.vercel.app/"/>
 <meta property="og:site_name" content="Read Aloud"/>
-<meta property="og:image" content="https://readaloudproofreader.vercel.app//og-image.png"/>
+<meta property="og:image" content="https://readaloudproofreader.vercel.app/og-image.png"/>
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image"/>
@@ -31,7 +30,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Read Aloud — Document & Manuscript Proofreading Tool",
-  "url": "https://readaloudproofreader.vercel.app//",
+  "url": "https://readaloudproofreader.vercel.app/",
   "description": "Free browser-based read-aloud tool. Upload a TXT, MD, DOCX, PDF, or EPUB file and listen to it with paragraph-by-paragraph highlighting to catch typos and awkward phrasing before publishing or submitting.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any (runs in Chrome, Edge, or Safari)",
@@ -39,6 +38,7 @@
   "featureList": [
     "Text-to-speech read-aloud with paragraph highlighting",
     "Supports TXT, Markdown, DOCX, PDF, and EPUB",
+    "Read articles directly from a web link",
     "Flag and export problem lines while listening",
     "Adjustable reading speed and voice selection",
     "Keyboard shortcuts for hands-free review",
@@ -53,6 +53,11 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can I read an article from a link instead of uploading a file?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Paste a URL into the article-link box on the upload screen. Since browsers block a page from directly downloading another site's content, the URL is sent to a third-party extraction service to fetch and clean up the article text before it's read aloud in your browser." }
+    },
     {
       "@type": "Question",
       "name": "Is Read Aloud free to use?",
@@ -82,9 +87,9 @@
 }
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#2E3454"/>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -172,6 +177,78 @@
     background:var(--paper);
     border:1px solid var(--rule);
     color:var(--ink-soft);
+  }
+
+  .or-divider{
+    display:flex; align-items:center; gap:14px;
+    margin:26px 0;
+    color:var(--ink-faint);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+  }
+  .or-divider::before, .or-divider::after{
+    content:''; flex:1; height:1px; background:var(--rule);
+  }
+
+  .url-box{
+    border:1px solid var(--rule);
+    border-radius:14px;
+    background:var(--paper-raised);
+    padding:22px 24px;
+  }
+  .url-label{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .url-row{
+    display:flex;
+    gap:10px;
+  }
+  .url-row input{
+    flex:1;
+    min-width:0;
+    padding:11px 14px;
+    border:1px solid var(--rule);
+    border-radius:9px;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+  }
+  .url-row input:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .url-go-btn{
+    flex-shrink:0;
+    padding:0 20px;
+    border:none;
+    border-radius:9px;
+    background:var(--accent);
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .15s ease;
+  }
+  .url-go-btn:hover{ background:#252a45; }
+  .url-go-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .url-note{
+    margin-top:10px;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+  .url-note a{ color:var(--ink-soft); }
+
+  @media (max-width: 520px){
+    .url-row{ flex-direction:column; }
+    .url-go-btn{ padding:11px; }
   }
 
   .compat-panel{
@@ -363,6 +440,65 @@
   }
   .new-file-btn:hover{ border-color:var(--accent); }
 
+  .insights-panel{
+    padding:16px 22px;
+    border-bottom:1px solid var(--rule);
+  }
+  .insights-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:10px;
+  }
+  .insights-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 10px;
+    margin-bottom:10px;
+  }
+  .insight-stat{ line-height:1.3; }
+  .insight-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    display:block;
+  }
+  .insight-label{
+    font-size:9.5px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .readability-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .readability-badge.easy{ background:#E4F0E6; color:var(--good); }
+  .readability-badge.standard{ background:var(--signal-soft); color:#8a6224; }
+  .readability-badge.hard{ background:#FBEAEA; color:var(--bad); }
+
+  .auto-flag-toggle{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .auto-flag-toggle input{ cursor:pointer; }
+
+  .block.auto-issue{
+    box-shadow: inset 3px 0 0 var(--signal);
+    cursor:help;
+  }
+  .block.auto-issue.flagged{
+    box-shadow: inset 3px 0 0 var(--bad);
+  }
+
   .chapter-list{ padding:8px 0; }
   .chapter-item{
     display:flex; align-items:baseline; gap:10px;
@@ -492,6 +628,17 @@
     </div>
   </div>
 
+  <div class="or-divider"><span>or</span></div>
+
+  <div class="url-box">
+    <label class="url-label" for="urlInput">Read an article from a web link</label>
+    <div class="url-row">
+      <input type="url" id="urlInput" placeholder="https://example.com/an-article" autocomplete="off" spellcheck="false"/>
+      <button class="url-go-btn" id="urlGoBtn">Fetch &amp; Read</button>
+    </div>
+    <div class="url-note">Sends the page's <em>URL</em> (not your device or files) to a third-party article-extraction service to pull out the readable text — see <a href="privacy.html">Privacy Policy</a>. Works best on standard articles and blog posts; paywalled or heavily interactive pages may not extract cleanly.</div>
+  </div>
+
   <div class="parsing-box" id="parsingBox"><div class="spinner"></div><span id="parsingMsg">Reading file…</span></div>
   <div class="error-box" id="errorBox"></div>
 
@@ -516,8 +663,8 @@
     <h3>Who uses it</h3>
     <p>Self-published authors doing a final pass before uploading to Google Play Books, Kindle Direct Publishing, Apple Books, or Kobo. Editors reviewing a client's draft. Students proofing a thesis or dissertation. Bloggers and content writers checking a post before it goes live. Professionals proofing a report, contract, or proposal. Anyone who wants to hear their own writing instead of just re-reading it silently one more time.</p>
 
-    <h3>Supported file formats</h3>
-    <p>Plain text (.txt), Markdown (.md), Microsoft Word (.docx), PDF (.pdf), and EPUB (.epub) — the same format most ebook retailers require for publishing. EPUB and DOCX give the most accurate paragraph-level highlighting, since they carry real document structure; PDF highlighting is page-level, since PDF text has no built-in paragraph markup.</p>
+    <h3>Supported file formats — and web links</h3>
+    <p>Plain text (.txt), Markdown (.md), Microsoft Word (.docx), PDF (.pdf), and EPUB (.epub) — the same format most ebook retailers require for publishing. EPUB and DOCX give the most accurate paragraph-level highlighting, since they carry real document structure; PDF highlighting is page-level, since PDF text has no built-in paragraph markup. You can also paste a link to any standard article or blog post and have it fetched and read aloud directly, without needing to download a file first.</p>
 
     <h3>How it works</h3>
     <p>Everything happens locally, inside your own browser tab. Your file is never uploaded to a server — it's parsed and read using your device's own text-to-speech engine. Flag any line that needs a fix as you listen, then export the full list of flagged lines as a plain text file when you're done.</p>
@@ -541,12 +688,52 @@
     <h3>Can I use this to proofread a book before publishing?</h3>
     <p>Yes — this is one of its main uses. Many self-published authors use Read Aloud to catch typos, repeated words, and awkward sentences before uploading a manuscript to an ebook store. The flag-and-export feature lets you mark problem lines while listening and download the full list afterward.</p>
 
+    <h3>Can I read an article from a link instead of uploading a file?</h3>
+    <p>Yes. Paste a URL into the "read an article from a web link" box on the upload screen. This works a little differently from file uploads: since browsers won't let a web page directly download another site's content, the URL you paste is sent to a third-party extraction service to fetch and clean up the article text. See the Privacy Policy for details. File uploads are unaffected by this and never leave your browser.</p>
+
     <h3>Which browsers support the read-aloud feature?</h3>
     <p>Chrome, Edge, and Safari (desktop and mobile) all support it reliably. Firefox has partial support and may offer fewer or lower-quality voices.</p>
   </section>
 
+  <section class="about-section" aria-labelledby="moreHeading">
+    <h2 id="moreHeading">Explore Read Aloud</h2>
+    <p>Read Aloud works the same way underneath no matter which page you start from — these are just focused guides for specific formats, features, and readers:</p>
+
+    <h3>By file type</h3>
+    <ul>
+      <li><a href="docx-text-to-speech.html">Read a Word document (.docx) aloud</a></li>
+      <li><a href="pdf-text-to-speech.html">Read a PDF aloud</a></li>
+      <li><a href="epub-text-to-speech.html">Proofread an EPUB before publishing</a></li>
+      <li><a href="txt-md-text-to-speech.html">Read plain text &amp; Markdown files aloud</a></li>
+      <li><a href="read-article-aloud.html">Read any article from a link</a></li>
+    </ul>
+
+    <h3>By feature</h3>
+    <ul>
+      <li><a href="readability-score-checker.html">Free readability score checker</a></li>
+      <li><a href="duplicate-word-finder.html">Duplicate &amp; repeated word finder</a></li>
+      <li><a href="proofreading-checklist-tool.html">Flag lines &amp; export a proofreading checklist</a></li>
+    </ul>
+
+    <h3>By who you are</h3>
+    <ul>
+      <li><a href="proofread-book-before-publishing.html">Self-published authors</a></li>
+      <li><a href="text-to-speech-for-students.html">Students</a></li>
+      <li><a href="text-to-speech-for-editors.html">Editors &amp; professionals</a></li>
+      <li><a href="text-to-speech-for-podcasters.html">Podcasters &amp; scriptwriters</a></li>
+      <li><a href="accessible-text-to-speech.html">Accessibility-focused readers</a></li>
+    </ul>
+
+    <h3>Compare</h3>
+    <ul>
+      <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+    </ul>
+  </section>
+
   <footer class="site-footer">
     <span>© <span id="yearNow"></span> Read Aloud</span>
+    <span aria-hidden="true">·</span>
+    <a href="about.html">About / Contact</a>
     <span aria-hidden="true">·</span>
     <a href="privacy.html">Privacy Policy</a>
     <span aria-hidden="true">·</span>
@@ -561,6 +748,7 @@
       <div class="sidebar-title" id="docTitleLabel">—</div>
       <button class="new-file-btn" id="btnNewFile">↺ Load a different file</button>
     </div>
+    <div class="insights-panel" id="insightsPanel"></div>
     <div class="chapter-list" id="chapterList"></div>
     <div class="sidebar-ad-slot" aria-label="Advertisement">
       <span class="ad-label">Ad</span>
