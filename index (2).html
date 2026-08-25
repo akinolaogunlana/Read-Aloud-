@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Read Aloud — Free Text-to-Speech Proofreading Tool for Manuscripts, Documents &amp; PDFs</title>
+<meta name="description" content="Upload a TXT, Markdown, DOCX, PDF, or EPUB file and hear it read back with paragraph-by-paragraph highlighting. Free browser-based read-aloud tool for authors proofing a manuscript, editors reviewing drafts, students checking a thesis, and anyone proofreading a document by ear. No account, nothing uploaded to a server."/>
+<meta name="keywords" content="read aloud manuscript, proofread ebook, text to speech for authors, epub reader tool, self publishing proofreading, listen to my manuscript, docx text to speech, pdf read aloud, free text to speech tool, book proofreading tool, read my document aloud, text to speech for editors, proofread thesis aloud, listen to my writing"/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://readaloudproofreader.vercel.app/"/>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Read Aloud — Free Proofreading Tool for Manuscripts, Documents &amp; PDFs"/>
+<meta property="og:description" content="Upload any TXT, MD, DOCX, PDF, or EPUB document and hear it read back to you with line-by-line highlighting. Free, private, runs entirely in your browser."/>
+<meta property="og:url" content="https://readaloudproofreader.vercel.app/"/>
+<meta property="og:site_name" content="Read Aloud"/>
+<meta property="og:image" content="https://readaloudproofreader.vercel.app/og-image.png"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Read Aloud — Free Proofreading Tool for Manuscripts, Documents &amp; PDFs"/>
+<meta name="twitter:description" content="Upload a document, hear it read back with line-by-line highlighting, catch errors before you publish or submit. Free and private."/>
+<meta name="twitter:image" content="https://readaloudproofreader.vercel.app/og-image.png"/>
+
+<!-- Structured data: what the tool is -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Read Aloud — Document & Manuscript Proofreading Tool",
+  "url": "https://readaloudproofreader.vercel.app/",
+  "description": "Free browser-based read-aloud tool. Upload a TXT, MD, DOCX, PDF, or EPUB file and listen to it with paragraph-by-paragraph highlighting to catch typos and awkward phrasing before publishing or submitting.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any (runs in Chrome, Edge, or Safari)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Text-to-speech read-aloud with paragraph highlighting",
+    "Supports TXT, Markdown, DOCX, PDF, and EPUB",
+    "Read articles directly from a web link",
+    "Flag and export problem lines while listening",
+    "Adjustable reading speed and voice selection",
+    "Keyboard shortcuts for hands-free review",
+    "Runs entirely client-side -- no file is uploaded to any server"
+  ]
+}
+</script>
+
+<!-- Structured data: FAQ rich results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can I read an article from a link instead of uploading a file?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Paste a URL into the article-link box on the upload screen. Since browsers block a page from directly downloading another site's content, the URL is sent to a third-party extraction service to fetch and clean up the article text before it's read aloud in your browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Read Aloud free to use?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Read Aloud is free to use with no account, no sign-up, and no file limits imposed by the tool itself. It runs entirely in your browser using your device's built-in text-to-speech voices." }
+    },
+    {
+      "@type": "Question",
+      "name": "What file types can I upload?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Plain text (.txt), Markdown (.md), Microsoft Word (.docx), PDF (.pdf), and EPUB (.epub). DOCX and EPUB give the most accurate paragraph-level highlighting because they contain real document structure; PDF highlighting works at the page level." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Read Aloud upload my file to a server?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Every file is parsed and read entirely inside your own browser tab. Nothing is transmitted to or stored on any server." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use this to proofread a book before publishing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes -- this is one of its main uses. Many self-published authors use Read Aloud to catch typos, repeated words, and awkward sentences before uploading a manuscript to Google Play Books, Kindle Direct Publishing, Apple Books, or Kobo. The flag-and-export feature lets you mark problem lines while listening and download the full list afterward." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which browsers support the read-aloud feature?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Chrome, Edge, and Safari (desktop and mobile) all support it reliably. Firefox has partial support and may offer fewer or lower-quality voices." }
+    }
+  ]
+}
+</script>
+
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#2E3454"/>
+<script src="ads.js" defer></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --paper: #F5F3EE;
+    --paper-raised: #FBFAF7;
+    --ink: #1E1C19;
+    --ink-soft: #57534A;
+    --ink-faint: #9A9488;
+    --rule: #DDD8CC;
+    --accent: #2E3454;
+    --accent-soft: #E7E5F0;
+    --signal: #B8863B;
+    --signal-soft: #F3E7CE;
+    --good: #3E7A4C;
+    --bad: #A33B3B;
+    --sidebar-w: 300px;
+    --bar-h: 84px;
+  }
+
+  *{box-sizing:border-box;}
+  html{ margin:0; padding:0; }
+  body{
+    margin:0; padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* ---------- Upload screen ---------- */
+  .upload-screen{
+    max-width:720px;
+    margin:0 auto;
+    padding:64px 24px 100px;
+  }
+  .upload-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:500;
+    margin-bottom:12px;
+  }
+  .upload-title{
+    font-family:'Source Serif 4',serif;
+    font-size:36px;
+    font-weight:600;
+    line-height:1.2;
+    margin:0 0 12px;
+  }
+  .upload-sub{
+    font-size:15px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin-bottom:36px;
+    max-width:560px;
+  }
+  .dropzone{
+    border:2px dashed var(--rule);
+    border-radius:14px;
+    background:var(--paper-raised);
+    padding:48px 32px;
+    text-align:center;
+    cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .dropzone.drag-over{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .dropzone svg{ width:36px; height:36px; color:var(--ink-faint); margin-bottom:14px; }
+  .dropzone-title{ font-size:15.5px; font-weight:600; margin-bottom:6px; }
+  .dropzone-sub{ font-size:13px; color:var(--ink-soft); }
+  .dropzone input{ display:none; }
+  .format-pills{
+    display:flex; gap:8px; justify-content:center; margin-top:18px; flex-wrap:wrap;
+  }
+  .pill{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    padding:5px 10px;
+    border-radius:20px;
+    background:var(--paper);
+    border:1px solid var(--rule);
+    color:var(--ink-soft);
+  }
+
+  .or-divider{
+    display:flex; align-items:center; gap:14px;
+    margin:26px 0;
+    color:var(--ink-faint);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+  }
+  .or-divider::before, .or-divider::after{
+    content:''; flex:1; height:1px; background:var(--rule);
+  }
+
+  .url-box{
+    border:1px solid var(--rule);
+    border-radius:14px;
+    background:var(--paper-raised);
+    padding:22px 24px;
+  }
+  .url-label{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .url-row{
+    display:flex;
+    gap:10px;
+  }
+  .url-row input{
+    flex:1;
+    min-width:0;
+    padding:11px 14px;
+    border:1px solid var(--rule);
+    border-radius:9px;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+  }
+  .url-row input:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .url-go-btn{
+    flex-shrink:0;
+    padding:0 20px;
+    border:none;
+    border-radius:9px;
+    background:var(--accent);
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .15s ease;
+  }
+  .url-go-btn:hover{ background:#252a45; }
+  .url-go-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .url-note{
+    margin-top:10px;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+  .url-note a{ color:var(--ink-soft); }
+
+  .paste-textarea{
+    width:100%;
+    min-height:110px;
+    padding:12px 14px;
+    border:1px solid var(--rule);
+    border-radius:9px;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4',serif;
+    font-size:14.5px;
+    line-height:1.6;
+    resize:vertical;
+  }
+  .paste-textarea:focus{ outline:none; border-color:var(--accent); }
+  .paste-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:10px;
+  }
+  .paste-count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  .paste-row .url-go-btn{ flex-shrink:0; }
+
+  @media (max-width: 520px){
+    .url-row{ flex-direction:column; }
+    .url-go-btn{ padding:11px; }
+  }
+
+  .compat-panel{
+    margin-top:40px;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:20px 22px;
+  }
+  .compat-title{
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+  .compat-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 0;
+    font-size:13.5px;
+  }
+  .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot.ok{ background:var(--good); }
+  .dot.warn{ background:var(--signal); }
+  .dot.bad{ background:var(--bad); }
+  .compat-note{
+    font-size:12px; color:var(--ink-faint); margin-top:12px; line-height:1.6;
+  }
+
+  .ad-slot{
+    margin-top:28px;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+
+  .about-section{
+    margin-top:48px;
+    padding-top:36px;
+    border-top:1px solid var(--rule);
+  }
+  .about-section h2{
+    font-family:'Source Serif 4',serif;
+    font-size:24px;
+    font-weight:600;
+    margin:0 0 14px;
+  }
+  .about-section h3{
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:700;
+    margin:26px 0 8px;
+    color:var(--accent);
+  }
+  .about-section p{
+    font-size:14px;
+    line-height:1.75;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .about-section a{ color:var(--accent); }
+
+  .site-footer{
+    margin-top:44px;
+    padding-top:20px;
+    border-top:1px solid var(--rule);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .site-footer a{ color:var(--ink-soft); }
+
+  .error-box{
+    margin-top:20px;
+    background:#FBEAEA;
+    border:1px solid #E7BEBE;
+    color:#7A2E2E;
+    padding:14px 16px;
+    border-radius:10px;
+    font-size:13.5px;
+    line-height:1.5;
+    display:none;
+  }
+  .parsing-box{
+    margin-top:20px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    padding:14px 16px;
+    border-radius:10px;
+    font-size:13.5px;
+    display:none;
+    align-items:center;
+    gap:10px;
+  }
+  .spinner{
+    width:14px; height:14px;
+    border:2px solid rgba(46,52,84,0.25);
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ---------- Reader screen (hidden until a file loads) ---------- */
+  .app{
+    display:none;
+    align-items:flex-start;
+  }
+  .app.active{ display:flex; }
+
+  .sidebar{
+    width:var(--sidebar-w);
+    flex:0 0 var(--sidebar-w);
+    background:var(--paper-raised);
+    border-right:1px solid var(--rule);
+    position:sticky;
+    top:0;
+    max-height:100vh;
+    min-height:320px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar-header{
+    padding:24px 22px 16px;
+    border-bottom:1px solid var(--rule);
+  }
+  .sidebar-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .sidebar-title{
+    font-family:'Source Serif 4',serif;
+    font-size:17px;
+    font-weight:600;
+    line-height:1.3;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .new-file-btn{
+    margin-top:12px;
+    font-family:'Inter',sans-serif;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--accent);
+    background:none;
+    border:1px solid var(--rule);
+    border-radius:7px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+  .new-file-btn:hover{ border-color:var(--accent); }
+
+  .insights-panel{
+    padding:16px 22px;
+    border-bottom:1px solid var(--rule);
+  }
+  .insights-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:10px;
+  }
+  .insights-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 10px;
+    margin-bottom:10px;
+  }
+  .insight-stat{ line-height:1.3; }
+  .insight-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    display:block;
+  }
+  .insight-label{
+    font-size:9.5px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .readability-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .readability-badge.easy{ background:#E4F0E6; color:var(--good); }
+  .readability-badge.standard{ background:var(--signal-soft); color:#8a6224; }
+  .readability-badge.hard{ background:#FBEAEA; color:var(--bad); }
+
+  .auto-flag-toggle{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .auto-flag-toggle input{ cursor:pointer; }
+
+  .block.auto-issue{
+    box-shadow: inset 3px 0 0 var(--signal);
+    cursor:help;
+  }
+  .block.auto-issue.flagged{
+    box-shadow: inset 3px 0 0 var(--bad);
+  }
+
+  .chapter-list{ padding:8px 0; }
+  .chapter-item{
+    display:flex; align-items:baseline; gap:10px;
+    padding:10px 22px;
+    cursor:pointer;
+    border-left:3px solid transparent;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .chapter-item:hover{ background: rgba(46,52,84,0.04); }
+  .chapter-item.active{ background: var(--accent-soft); border-left-color: var(--accent); }
+  .chapter-num{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-faint); min-width:20px;
+  }
+  .chapter-item.active .chapter-num{ color:var(--accent); }
+  .chapter-item.done .chapter-num::after{ content:" ✓"; color:var(--signal); }
+  .chapter-name{ font-size:13px; line-height:1.35; color:var(--ink); }
+  .chapter-item.active .chapter-name{ font-weight:600; }
+  .chapter-words{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--ink-faint); margin-top:2px; }
+  .sidebar-footer{
+    padding:14px 22px; border-top:1px solid var(--rule);
+    font-size:10.5px; color:var(--ink-faint); line-height:1.5;
+  }
+
+  .main{ flex:1; min-width:0; padding:56px 0 160px; }
+  .reading-inner{ max-width:680px; margin:0 auto; padding:0 40px; }
+  .doc-title{
+    font-family:'Source Serif 4',serif; font-size:14px; color:var(--ink-faint);
+    letter-spacing:0.02em; margin-bottom:6px; word-break:break-word;
+  }
+  .chapter-heading{
+    font-family:'Source Serif 4',serif; font-size:32px; font-weight:600; line-height:1.18;
+    color:var(--ink); margin:0 0 30px; padding-bottom:20px; border-bottom:1px solid var(--rule);
+  }
+  .block{
+    font-family:'Source Serif 4',serif; font-size:18px; line-height:1.75; color:var(--ink);
+    margin:0 0 22px; padding:4px 14px; margin-left:-14px; margin-right:-14px;
+    border-radius:6px; transition: background .3s ease; scroll-margin-top: 24px;
+  }
+  h3.block{ font-size:17px; font-weight:600; margin-top:10px; color:var(--accent); }
+  .block.reading{ background: var(--signal-soft); }
+  .block.spoken{ color: var(--ink-soft); }
+
+  .playbar{
+    position:fixed; left:0; right:0; bottom:0; height:var(--bar-h);
+    background:var(--paper-raised); border-top:1px solid var(--rule);
+    display:none; align-items:center; gap:20px; padding:0 28px 0 calc(var(--sidebar-w) + 28px); z-index:10;
+  }
+  .playbar.active{ display:flex; }
+  .transport{ display:flex; align-items:center; gap:8px; }
+  .btn{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--rule);
+    background:var(--paper); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--ink); transition: all .15s ease;
+  }
+  .btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-play{ width:50px; height:50px; background:var(--accent); color:#fff; border:none; }
+  .btn-play:hover{ background:#252a45; color:#fff; }
+  .btn svg{ width:16px; height:16px; }
+  .btn-play svg{ width:19px; height:19px; }
+
+  .progress-area{ flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .progress-labels{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-soft); }
+  .progress-track{ height:5px; background:var(--rule); border-radius:3px; position:relative; overflow:hidden; }
+  .progress-fill{ position:absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, var(--accent), var(--signal)); border-radius:3px; transition: width .2s ease; width:0%; }
+  .now-reading{ font-size:11.5px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px; }
+
+  .speed-control, .voice-control{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:11px; }
+  .speed-control select, .voice-control select{
+    background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:6px 8px;
+    font-family:inherit; font-size:inherit; color:var(--ink); cursor:pointer;
+  }
+  .voice-control select{ font-family:'Inter',sans-serif; max-width:140px; }
+
+  .btn-flag-wrap{ position:relative; }
+  .flag-badge{
+    position:absolute; top:-4px; right:-4px;
+    background:var(--bad); color:#fff;
+    font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:600;
+    min-width:15px; height:15px; border-radius:8px;
+    display:none; align-items:center; justify-content:center; padding:0 3px;
+  }
+  .flag-badge.show{ display:flex; }
+  .block.flagged{ box-shadow: inset 3px 0 0 var(--bad); }
+  .export-link{
+    display:inline-block; margin-top:8px; font-size:11px; font-weight:600;
+    color:var(--accent); cursor:pointer; text-decoration:underline;
+  }
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .pulse-dot{ width:8px; height:8px; border-radius:50%; background:var(--signal); opacity:0; flex-shrink:0; }
+  .pulse-dot.live{ animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:0.3; transform:scale(0.85); } 50%{ opacity:1; transform:scale(1.15); } }
+
+  ::-webkit-scrollbar{ width:9px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--rule); border-radius:5px; }
+
+  @media (max-width: 760px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; flex:none; position:static; max-height:none; min-height:0; border-right:none; border-bottom:1px solid var(--rule); }
+    .chapter-list{ max-height:200px; overflow-y:auto; }
+    .playbar{ padding:0 14px; gap:10px; }
+    .now-reading{ display:none; }
+    .reading-inner{ padding:0 20px; }
+    .chapter-heading{ font-size:25px; }
+    .upload-title{ font-size:28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="upload-screen" id="uploadScreen">
+  <div class="upload-eyebrow">Read-aloud review tool</div>
+  <h1 class="upload-title">Read Aloud</h1>
+  <p class="upload-sub">Upload a manuscript and it reads it back to you, paragraph by paragraph, with the current line highlighted as it plays — a fast way to catch typos and awkward phrasing before you publish anything.</p>
+
+  <div class="dropzone" id="dropzone">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <div class="dropzone-title">Drop a file here, or click to choose one</div>
+    <div class="dropzone-sub">.txt · .md · .docx · .pdf · .epub · images (OCR) — processed entirely in your browser, never uploaded anywhere</div>
+    <input type="file" id="fileInput" accept=".txt,.md,.markdown,.docx,.pdf,.epub,.png,.jpg,.jpeg,.webp,.bmp"/>
+    <div class="format-pills">
+      <span class="pill">TXT</span><span class="pill">MARKDOWN</span><span class="pill">DOCX</span><span class="pill">PDF</span><span class="pill">EPUB</span><span class="pill">IMAGE (OCR)</span>
+    </div>
+  </div>
+
+  <div class="or-divider"><span>or</span></div>
+
+  <div class="url-box">
+    <label class="url-label" for="urlInput">Read an article from a web link</label>
+    <div class="url-row">
+      <input type="url" id="urlInput" placeholder="https://example.com/an-article" autocomplete="off" spellcheck="false"/>
+      <button class="url-go-btn" id="urlGoBtn">Fetch &amp; Read</button>
+    </div>
+    <div class="url-note">Sends the page's <em>URL</em> (not your device or files) to a third-party article-extraction service to pull out the readable text — see <a href="privacy.html">Privacy Policy</a>. Works best on standard articles and blog posts; paywalled or heavily interactive pages may not extract cleanly.</div>
+  </div>
+
+  <div class="or-divider"><span>or</span></div>
+
+  <div class="url-box">
+    <label class="url-label" for="pasteInput">Paste text directly</label>
+    <textarea id="pasteInput" class="paste-textarea" placeholder="Paste or type any text here — an email draft, a paragraph you're checking, notes, anything." spellcheck="false"></textarea>
+    <div class="paste-row">
+      <span class="paste-count" id="pasteCount">0 words</span>
+      <button class="url-go-btn" id="pasteGoBtn">Read This Text</button>
+    </div>
+    <div class="url-note">Stays entirely in your browser, exactly like a file upload — nothing is sent anywhere.</div>
+  </div>
+
+  <div class="parsing-box" id="parsingBox"><div class="spinner"></div><span id="parsingMsg">Reading file…</span></div>
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Ad slot: upload page, below the fold. Swap the placeholder div for your
+       real AdSense <ins> unit once your site is approved. Kept below the
+       primary tool so ads never delay or distract from first use. -->
+  <div class="ad-slot" id="adSlotUpload" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — 728×90 or responsive unit</div>
+  </div>
+
+  <div class="compat-panel">
+    <div class="compat-title">Browser support check</div>
+    <div id="compatRows"></div>
+    <div class="compat-note">Read-aloud uses your browser's built-in voices. Chrome, Edge, and Safari (desktop &amp; mobile) support this reliably. Firefox has partial support and may offer fewer or lower-quality voices. Nothing you upload leaves your device — all parsing and reading happens locally.</div>
+  </div>
+
+  <section class="about-section" aria-labelledby="aboutHeading">
+    <h2 id="aboutHeading">A free proofreading tool for anything you write</h2>
+    <p>Most typos, repeated words, and awkward sentences are easier to catch by ear than by eye — your eyes fill in what you meant to write, but your ears notice what's actually on the page. <strong>Read Aloud</strong> turns any document into a listening review session: upload your file, hit play, and follow along as each paragraph is highlighted in sync with the narration.</p>
+
+    <h3>Who uses it</h3>
+    <p>Self-published authors doing a final pass before uploading to Google Play Books, Kindle Direct Publishing, Apple Books, or Kobo. Editors reviewing a client's draft. Students proofing a thesis or dissertation. Bloggers and content writers checking a post before it goes live. Professionals proofing a report, contract, or proposal. Anyone who wants to hear their own writing instead of just re-reading it silently one more time.</p>
+
+    <h3>Supported file formats — and web links</h3>
+    <p>Plain text (.txt), Markdown (.md), Microsoft Word (.docx), PDF (.pdf), and EPUB (.epub) — the same format most ebook retailers require for publishing. EPUB and DOCX give the most accurate paragraph-level highlighting, since they carry real document structure; PDF highlighting is page-level, since PDF text has no built-in paragraph markup. You can also paste a link to any standard article or blog post and have it fetched and read aloud directly, without needing to download a file first.</p>
+
+    <h3>How it works</h3>
+    <p>Everything happens locally, inside your own browser tab. Your file is never uploaded to a server — it's parsed and read using your device's own text-to-speech engine. Flag any line that needs a fix as you listen, then export the full list of flagged lines as a plain text file when you're done.</p>
+
+    <h3>Privacy</h3>
+    <p>No account, no file storage, no tracking of what you upload. See the <a href="privacy.html">Privacy Policy</a> for details on the third-party libraries and fonts this page loads, and how advertising on this site works.</p>
+  </section>
+
+  <section class="about-section" aria-labelledby="faqHeading">
+    <h2 id="faqHeading">Frequently asked questions</h2>
+
+    <h3>Is Read Aloud free to use?</h3>
+    <p>Yes. Read Aloud is free with no account, no sign-up, and no file limits imposed by the tool itself. It runs entirely in your browser using your device's built-in text-to-speech voices.</p>
+
+    <h3>What file types can I upload?</h3>
+    <p>Plain text, Markdown, Word (.docx), PDF, and EPUB. DOCX and EPUB give the most accurate paragraph-level highlighting because they contain real document structure; PDF highlighting works at the page level.</p>
+
+    <h3>Does it upload my file to a server?</h3>
+    <p>No. Every file is parsed and read entirely inside your own browser tab. Nothing is transmitted to or stored on any server.</p>
+
+    <h3>Can I use this to proofread a book before publishing?</h3>
+    <p>Yes — this is one of its main uses. Many self-published authors use Read Aloud to catch typos, repeated words, and awkward sentences before uploading a manuscript to an ebook store. The flag-and-export feature lets you mark problem lines while listening and download the full list afterward.</p>
+
+    <h3>Can I read an article from a link instead of uploading a file?</h3>
+    <p>Yes. Paste a URL into the "read an article from a web link" box on the upload screen. This works a little differently from file uploads: since browsers won't let a web page directly download another site's content, the URL you paste is sent to a third-party extraction service to fetch and clean up the article text. See the Privacy Policy for details. File uploads are unaffected by this and never leave your browser.</p>
+
+    <h3>Which browsers support the read-aloud feature?</h3>
+    <p>Chrome, Edge, and Safari (desktop and mobile) all support it reliably. Firefox has partial support and may offer fewer or lower-quality voices.</p>
+  </section>
+
+  <section class="about-section" aria-labelledby="moreHeading">
+    <h2 id="moreHeading">Explore Read Aloud</h2>
+    <p>Read Aloud works the same way underneath no matter which page you start from — these are just focused guides for specific formats, features, and readers:</p>
+
+    <h3>By file type</h3>
+    <ul>
+      <li><a href="docx-text-to-speech.html">Read a Word document (.docx) aloud</a></li>
+      <li><a href="pdf-text-to-speech.html">Read a PDF aloud</a></li>
+      <li><a href="epub-text-to-speech.html">Proofread an EPUB before publishing</a></li>
+      <li><a href="txt-md-text-to-speech.html">Read plain text &amp; Markdown files aloud</a></li>
+      <li><a href="read-article-aloud.html">Read any article from a link</a></li>
+    </ul>
+
+    <h3>By feature</h3>
+    <ul>
+      <li><a href="readability-score-checker.html">Free readability score checker</a></li>
+      <li><a href="duplicate-word-finder.html">Duplicate &amp; repeated word finder</a></li>
+      <li><a href="proofreading-checklist-tool.html">Flag lines &amp; export a proofreading checklist</a></li>
+    </ul>
+
+    <h3>By who you are</h3>
+    <ul>
+      <li><a href="proofread-book-before-publishing.html">Self-published authors</a></li>
+      <li><a href="text-to-speech-for-students.html">Students</a></li>
+      <li><a href="text-to-speech-for-editors.html">Editors &amp; professionals</a></li>
+      <li><a href="text-to-speech-for-podcasters.html">Podcasters &amp; scriptwriters</a></li>
+      <li><a href="accessible-text-to-speech.html">Accessibility-focused readers</a></li>
+    </ul>
+
+    <h3>Compare</h3>
+    <ul>
+      <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+    </ul>
+  </section>
+
+  <footer class="site-footer">
+    <span>© <span id="yearNow"></span> Read Aloud</span>
+    <span aria-hidden="true">·</span>
+    <a href="about.html">About / Contact</a>
+    <span aria-hidden="true">·</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <span aria-hidden="true">·</span>
+    <a href="terms.html">Terms of Use</a>
+  </footer>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-eyebrow">Now reading</div>
+      <div class="sidebar-title" id="docTitleLabel">—</div>
+      <button class="new-file-btn" id="btnNewFile">↺ Load a different file</button>
+    </div>
+    <div class="insights-panel" id="insightsPanel"></div>
+    <div class="chapter-list" id="chapterList"></div>
+    <div class="sidebar-footer">
+      <div id="sidebarFooter">—</div>
+      <span class="export-link" id="exportLink" style="display:none;">Export flagged lines (<span id="flagCount">0</span>)</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="reading-inner" id="readingInner"></div>
+  </main>
+</div>
+
+<div class="playbar" id="playbar">
+  <div class="transport">
+    <button class="btn" id="btnPrev" title="Previous section" aria-label="Previous section">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+    <button class="btn" id="btnBack15" title="Back one paragraph" aria-label="Back one paragraph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/></svg>
+    </button>
+    <button class="btn btn-play" id="btnPlay" title="Play / Pause (Space)" aria-label="Play or pause reading" aria-pressed="false">
+      <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+      <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="btn" id="btnFwd15" title="Skip one paragraph" aria-label="Skip forward one paragraph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>
+    </button>
+    <button class="btn" id="btnNext" title="Next section" aria-label="Next section">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+    </button>
+    <div class="btn-flag-wrap">
+      <button class="btn" id="btnFlag" title="Flag this line as an issue (F)" aria-label="Flag current line as an issue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      </button>
+      <span class="flag-badge" id="flagBadge">0</span>
+    </div>
+  </div>
+  <div class="progress-area">
+    <div class="progress-labels"><span class="now-reading" id="nowReading">—</span><span id="progressPct">0%</span></div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <span class="sr-only" role="status" aria-live="polite" id="srStatus"></span>
+  <div class="pulse-dot" id="pulseDot"></div>
+  <div class="voice-control"><select id="voiceSelect"></select></div>
+  <div class="speed-control">
+    <span>Speed</span>
+    <select id="speedSelect">
+      <option value="0.8">0.8×</option><option value="0.9">0.9×</option>
+      <option value="1" selected>1.0×</option><option value="1.15">1.15×</option>
+      <option value="1.3">1.3×</option><option value="1.5">1.5×</option>
+    </select>
+  </div>
+</div>
+
+<script src="read-aloud-engine.js" defer></script>
+
+</body>
+</html>
