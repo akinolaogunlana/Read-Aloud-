@@ -90,6 +90,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#2E3454"/>
+<script src="ads.js" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -246,6 +247,34 @@
   }
   .url-note a{ color:var(--ink-soft); }
 
+  .paste-textarea{
+    width:100%;
+    min-height:110px;
+    padding:12px 14px;
+    border:1px solid var(--rule);
+    border-radius:9px;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4',serif;
+    font-size:14.5px;
+    line-height:1.6;
+    resize:vertical;
+  }
+  .paste-textarea:focus{ outline:none; border-color:var(--accent); }
+  .paste-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:10px;
+  }
+  .paste-count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  .paste-row .url-go-btn{ flex-shrink:0; }
+
   @media (max-width: 520px){
     .url-row{ flex-direction:column; }
     .url-go-btn{ padding:11px; }
@@ -344,15 +373,6 @@
     color:var(--ink-faint);
   }
   .site-footer a{ color:var(--ink-soft); }
-
-  .sidebar-ad-slot{
-    margin:0 22px 16px;
-    border:1px solid var(--rule);
-    border-radius:10px;
-    padding:10px;
-    text-align:center;
-  }
-  .sidebar-ad-slot .ad-placeholder{ padding:18px 8px; font-size:10.5px; }
 
   .error-box{
     margin-top:20px;
@@ -621,10 +641,10 @@
   <div class="dropzone" id="dropzone">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     <div class="dropzone-title">Drop a file here, or click to choose one</div>
-    <div class="dropzone-sub">.txt · .md · .docx · .pdf · .epub — processed entirely in your browser, never uploaded anywhere</div>
-    <input type="file" id="fileInput" accept=".txt,.md,.markdown,.docx,.pdf,.epub"/>
+    <div class="dropzone-sub">.txt · .md · .docx · .pdf · .epub · images (OCR) — processed entirely in your browser, never uploaded anywhere</div>
+    <input type="file" id="fileInput" accept=".txt,.md,.markdown,.docx,.pdf,.epub,.png,.jpg,.jpeg,.webp,.bmp"/>
     <div class="format-pills">
-      <span class="pill">TXT</span><span class="pill">MARKDOWN</span><span class="pill">DOCX</span><span class="pill">PDF</span><span class="pill">EPUB</span>
+      <span class="pill">TXT</span><span class="pill">MARKDOWN</span><span class="pill">DOCX</span><span class="pill">PDF</span><span class="pill">EPUB</span><span class="pill">IMAGE (OCR)</span>
     </div>
   </div>
 
@@ -637,6 +657,18 @@
       <button class="url-go-btn" id="urlGoBtn">Fetch &amp; Read</button>
     </div>
     <div class="url-note">Sends the page's <em>URL</em> (not your device or files) to a third-party article-extraction service to pull out the readable text — see <a href="privacy.html">Privacy Policy</a>. Works best on standard articles and blog posts; paywalled or heavily interactive pages may not extract cleanly.</div>
+  </div>
+
+  <div class="or-divider"><span>or</span></div>
+
+  <div class="url-box">
+    <label class="url-label" for="pasteInput">Paste text directly</label>
+    <textarea id="pasteInput" class="paste-textarea" placeholder="Paste or type any text here — an email draft, a paragraph you're checking, notes, anything." spellcheck="false"></textarea>
+    <div class="paste-row">
+      <span class="paste-count" id="pasteCount">0 words</span>
+      <button class="url-go-btn" id="pasteGoBtn">Read This Text</button>
+    </div>
+    <div class="url-note">Stays entirely in your browser, exactly like a file upload — nothing is sent anywhere.</div>
   </div>
 
   <div class="parsing-box" id="parsingBox"><div class="spinner"></div><span id="parsingMsg">Reading file…</span></div>
@@ -750,10 +782,6 @@
     </div>
     <div class="insights-panel" id="insightsPanel"></div>
     <div class="chapter-list" id="chapterList"></div>
-    <div class="sidebar-ad-slot" aria-label="Advertisement">
-      <span class="ad-label">Ad</span>
-      <div class="ad-placeholder">300×250 unit</div>
-    </div>
     <div class="sidebar-footer">
       <div id="sidebarFooter">—</div>
       <span class="export-link" id="exportLink" style="display:none;">Export flagged lines (<span id="flagCount">0</span>)</span>
