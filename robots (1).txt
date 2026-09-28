@@ -1,0 +1,38 @@
+User-agent: *
+Allow: /
+
+# Explicit allow-listing for known AI crawlers. Most already have access
+# under the wildcard rule above -- this exists to remove ambiguity about
+# intent, since this site wants to be discoverable and citable by AI
+# assistants, not just traditional search engines.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://readaloudproofreader.vercel.app/sitemap.xml
