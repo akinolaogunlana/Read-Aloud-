@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -91,6 +118,11 @@
   <p class="lede">Upload a PDF and Read Aloud extracts the text page by page, then reads it back to you — no software to install, nothing sent to a server.</p>
   <a class="cta" href="index.html">Upload a PDF →</a>
 
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
+
 
   <h2>Good to know before you start</h2>
   <p>PDF is a print-oriented format — it stores where text sits on a page, not whether that text forms one paragraph or five. Because of that, Read Aloud's highlighting for PDFs works at the page level rather than the paragraph level you'd get from a .docx or .epub. It still reads the whole document aloud correctly; the visual highlight is just a little less precise. If paragraph-level tracking matters more to you than the source format, converting to .docx first will give you a better experience.</p>
@@ -104,6 +136,11 @@
   <h3>Privacy</h3>
   <p>Your PDF is processed entirely in your browser using PDF.js, an open-source library. It is never uploaded anywhere.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -136,6 +173,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 

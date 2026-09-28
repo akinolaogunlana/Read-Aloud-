@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -90,6 +117,11 @@
   <h1>A Read-Aloud Tool That Actually Works With Assistive Tech</h1>
   <p class="lede">Text-to-speech is only useful if the interface around it is usable too. Every control here is keyboard-operable, labeled, and announced — not an afterthought.</p>
   <a class="cta" href="index.html">Try the accessible reader →</a>
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
 
   <h2>What "accessible" actually means here</h2>
@@ -110,6 +142,11 @@
   <h3>Still worth knowing</h3>
   <p>The actual voice quality depends on your browser and operating system's built-in text-to-speech engine, which this tool doesn't control. Chrome, Edge, and Safari generally offer the most natural-sounding voices; see each platform's own accessibility settings to install additional or higher-quality voices if you want more options.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -142,6 +179,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 

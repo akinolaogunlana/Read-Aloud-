@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -91,6 +118,11 @@
   <p class="lede">No formatting, no distractions — just your words, read back to you exactly as you wrote them, with Markdown headings respected as real section breaks.</p>
   <a class="cta" href="index.html">Upload a .txt or .md file →</a>
 
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
+
 
   <h2>Why plain text deserves its own listening tool</h2>
   <p>A lot of first drafts never touch Word or Google Docs at all — they live in a plain text editor, a notes app export, or a Markdown file in a code repository. Read Aloud treats Markdown's <code>#</code> and <code>##</code> headings as real chapter and section breaks, so even an unformatted draft gets proper navigation and paragraph-level highlighting, not just one long wall of text.</p>
@@ -104,6 +136,11 @@
   <h3>Privacy</h3>
   <p>Text files are read directly by your browser — there's no conversion library involved at all, and nothing is ever uploaded anywhere.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -136,6 +173,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 

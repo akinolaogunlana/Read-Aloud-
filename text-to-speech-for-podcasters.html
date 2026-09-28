@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -91,6 +118,11 @@
   <p class="lede">A sentence can be grammatically perfect and still be a nightmare to say — a tongue-twisting phrase, a clause so long you run out of breath, a word that reads clean but sounds clumsy spoken. Catch it before you're recording, not during.</p>
   <a class="cta" href="index.html">Upload your script →</a>
 
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
+
 
   <h2>Writing for the page and writing for the ear are different skills</h2>
   <p>A script that scans perfectly well silently can still trip you up the moment you actually try to say it — consonant clusters that are awkward back-to-back, a sentence structured for reading rather than speaking, a run-on that works visually with commas but leaves no natural place to breathe. None of that shows up until you hear it, which is usually mid-recording, which is usually annoying.</p>
@@ -104,6 +136,11 @@
   <h3>A practical tip</h3>
   <p>Slow the playback speed down to 0.8× on a first pass — it's easier to notice an awkward phrase when it's not rushing by, the same way a slow read-through catches more than reading at full pace.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -136,6 +173,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 

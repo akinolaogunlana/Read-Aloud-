@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -91,6 +118,11 @@
   <p class="lede">Fixing an error the moment you hear it breaks your listening flow, and you miss the next one. Flag it instead, keep listening, and fix everything afterward from one exported checklist.</p>
   <a class="cta" href="index.html">Start flagging as you listen →</a>
 
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
+
 
   <h2>The problem with fixing errors as you go</h2>
   <p>The instinct, the moment you hear an awkward sentence, is to stop and fix it right away. That instinct is exactly what makes a listening proofread less effective than it could be — stopping to edit breaks your attention, and by the time you've fixed one sentence, you're no longer listening closely enough to catch the next one. A better pattern, used by professional audiobook proofers, is to mark and keep moving, then fix everything in a single dedicated editing pass afterward.</p>
@@ -104,6 +136,11 @@
   <h3>Export when you're done</h3>
   <p>One click downloads every flagged line as a plain text file, grouped by section, with the reason noted for anything auto-detected. Work through it as a checklist in your word processor, instead of trying to remember which of forty chapters had the problem you half-noticed three hours ago.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -136,6 +173,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 

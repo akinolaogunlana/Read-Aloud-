@@ -25,6 +25,7 @@ function renderCompatPanel(){
     {label: 'Word (.docx) parsing', ok: true, note:'Loads automatically the first time you open a .docx'},
     {label: 'PDF parsing', ok: true, note:'Loads automatically the first time you open a .pdf'},
     {label: 'EPUB parsing', ok: true, note:'Loads automatically the first time you open an .epub'},
+    {label: 'Image / scanned-document OCR', ok: true, note:'Loads automatically the first time it\'s needed -- can take a while for longer documents'},
     {label: 'Text-to-speech (Web Speech API)', ok: compat.speech},
   ];
   rows.innerHTML = items.map(it => {
@@ -55,7 +56,8 @@ const LIB_URLS = {
   mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js',
   pdfjs: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   pdfjsWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  tesseract: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/tesseract.min.js'
 };
 
 async function ensureMammoth(){
@@ -73,6 +75,26 @@ async function ensurePdfjs(){
 async function ensureJszip(){
   if(typeof JSZip === 'undefined') await loadScriptOnce(LIB_URLS.jszip);
   return typeof JSZip !== 'undefined';
+}
+async function ensureTesseract(){
+  if(typeof Tesseract === 'undefined') await loadScriptOnce(LIB_URLS.tesseract);
+  return typeof Tesseract !== 'undefined';
+}
+
+// A single shared OCR worker, created lazily and reused across pages/images
+// in one session rather than spun up fresh each time (worker startup is
+// the slowest part of Tesseract.js).
+let _ocrWorker = null;
+async function getOcrWorker(onProgress){
+  if(_ocrWorker) return _ocrWorker;
+  _ocrWorker = await Tesseract.createWorker('eng', 1, {
+    logger: (m) => {
+      if(onProgress && m.status === 'recognizing text'){
+        onProgress(Math.round((m.progress || 0) * 100));
+      }
+    }
+  });
+  return _ocrWorker;
 }
 
 /* ============================================================
@@ -212,21 +234,88 @@ function parseDocxHtml(htmlString, filename){
   return sections;
 }
 
-async function parsePdf(arrayBuffer, filename){
+async function parsePdf(arrayBuffer, filename, onProgress){
   const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
   const sections = [];
+  const OCR_PAGE_CAP = 25; // keep runaway OCR time bounded on long scanned PDFs
+  let ocrPagesUsed = 0;
+  let ocrCapHit = false;
+
   for(let i = 1; i <= pdf.numPages; i++){
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const text = content.items.map(it => it.str).join(' ').replace(/\s+/g,' ').trim();
+    let text = content.items.map(it => it.str).join(' ').replace(/\s+/g,' ').trim();
+    let usedOcr = false;
+
+    if(!text){
+      // No real text layer -- likely a scanned page. Fall back to OCR,
+      // up to a page cap so a huge scanned book can't run indefinitely.
+      if(ocrPagesUsed < OCR_PAGE_CAP){
+        const gotTesseract = await ensureTesseract();
+        if(gotTesseract){
+          if(onProgress) onProgress(`Running OCR on page ${i} of ${pdf.numPages}…`, 0);
+          try{
+            const viewport = page.getViewport({ scale: 2 }); // higher res improves OCR accuracy
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            const worker = await getOcrWorker((pct) => {
+              if(onProgress) onProgress(`Running OCR on page ${i} of ${pdf.numPages}…`, pct);
+            });
+            const result = await worker.recognize(canvas);
+            text = (result && result.data && result.data.text ? result.data.text : '').trim();
+            usedOcr = true;
+            ocrPagesUsed++;
+          }catch(e){
+            console.error('OCR failed for page ' + i, e);
+          }
+        }
+      } else {
+        ocrCapHit = true;
+      }
+    }
+
     if(!text) continue;
-    const blocks = expandBlocks(text.length ? [{type:'p', text, html: escapeHtml(text)}] : []);
-    sections.push({title: `${filename} — Page ${i}`, blocks});
+    const blocks = expandBlocks([{type:'p', text, html: escapeHtml(text)}]);
+    const label = usedOcr ? ` — Page ${i} (OCR)` : ` — Page ${i}`;
+    sections.push({title: `${filename}${label}`, blocks});
   }
+
+  if(ocrCapHit){
+    sections.push({
+      title: `${filename} — Note`,
+      blocks: [{
+        type:'p',
+        text: `OCR was stopped after ${OCR_PAGE_CAP} scanned pages to keep processing time reasonable. Some later pages in this document may not have been read.`,
+        html: `OCR was stopped after ${OCR_PAGE_CAP} scanned pages to keep processing time reasonable. Some later pages in this document may not have been read.`
+      }]
+    });
+  }
+
   if(sections.length === 0){
-    sections.push({title: filename, blocks: [{type:'p', text:'No extractable text was found on any page of this PDF (it may be a scanned image).', html:'No extractable text was found on any page of this PDF (it may be a scanned image).'}]});
+    sections.push({title: filename, blocks: [{type:'p', text:'No extractable or recognizable text was found in this PDF, even after attempting OCR.', html:'No extractable or recognizable text was found in this PDF, even after attempting OCR.'}]});
   }
   return sections;
+}
+
+async function parseImageOCR(file, filename, onProgress){
+  const gotTesseract = await ensureTesseract();
+  if(!gotTesseract){
+    throw new Error('The OCR engine could not be loaded. Check your internet connection and try again.');
+  }
+  const worker = await getOcrWorker((pct) => {
+    if(onProgress) onProgress(`Reading text from the image…`, pct);
+  });
+  const result = await worker.recognize(file);
+  const text = (result && result.data && result.data.text ? result.data.text : '').trim();
+  if(!text){
+    return [{title: filename, blocks: [{type:'p', text:'No readable text was found in this image.', html:'No readable text was found in this image.'}]}];
+  }
+  const blocks = expandBlocks([{type:'p', text, html: escapeHtml(text)}]);
+  return [{title: filename, blocks}];
 }
 
 async function parseEpub(arrayBuffer, filename){
@@ -306,8 +395,8 @@ function showError(msg){
   errorBox.style.display = 'block';
 }
 function clearError(){ errorBox.style.display = 'none'; }
-function showParsing(msg){
-  parsingMsg.textContent = msg;
+function showParsing(msg, pct){
+  parsingMsg.textContent = (typeof pct === 'number') ? `${msg} (${pct}%)` : msg;
   parsingBox.style.display = 'flex';
 }
 function hideParsing(){ parsingBox.style.display = 'none'; }
@@ -370,7 +459,7 @@ async function handleFile(file){
       }
       showParsing('Extracting text from PDF (this can take a moment for long files)…');
       const buf = await file.arrayBuffer();
-      const sections = await parsePdf(buf, baseName);
+      const sections = await parsePdf(buf, baseName, (msg, pct) => showParsing(msg, pct));
       hideParsing();
       loadDocument(baseName, sections);
 
@@ -388,8 +477,20 @@ async function handleFile(file){
       hideParsing();
       loadDocument(baseName, sections);
 
+    } else if(['png','jpg','jpeg','webp','bmp'].includes(ext)){
+      showParsing('Loading OCR engine…');
+      const gotTesseract = await ensureTesseract();
+      if(!gotTesseract){
+        hideParsing();
+        showError('Could not load the OCR engine — check your internet connection and try again.');
+        return;
+      }
+      const sections = await parseImageOCR(file, baseName, (msg, pct) => showParsing(msg, pct));
+      hideParsing();
+      loadDocument(baseName, sections);
+
     } else {
-      showError(`".${ext}" isn't supported yet. Try .txt, .md, .docx, .pdf, or .epub.`);
+      showError(`".${ext}" isn't supported yet. Try .txt, .md, .docx, .pdf, .epub, or a .png/.jpg image.`);
     }
   } catch(err){
     hideParsing();
@@ -473,6 +574,49 @@ document.getElementById('urlInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){
     e.preventDefault();
     if(e.target.value.trim()) fetchArticleFromUrl(e.target.value);
+  }
+});
+
+/* ============================================================
+   PASTE TEXT DIRECTLY -- stays entirely local, same as a file
+   upload. Reuses the plain-text parser with Markdown-style
+   headers honored, so someone pasting a structured note still
+   gets real section breaks.
+   ============================================================ */
+const pasteInput = document.getElementById('pasteInput');
+const pasteCount = document.getElementById('pasteCount');
+const pasteGoBtn = document.getElementById('pasteGoBtn');
+
+function updatePasteCount(){
+  const words = pasteInput.value.trim().split(/\s+/).filter(Boolean).length;
+  pasteCount.textContent = words.toLocaleString() + ' word' + (words === 1 ? '' : 's');
+}
+pasteInput.addEventListener('input', updatePasteCount);
+
+async function readPastedText(){
+  clearError();
+  try{
+    const text = pasteInput.value;
+    if(!text || text.trim().length < 5){
+      showError('Paste in a bit more text first — there\'s not enough here to read yet.');
+      return;
+    }
+    const sections = parsePlainText(text, true, 'Pasted Text');
+    if(!sections || sections.length === 0 || sections.every(s => s.blocks.length === 0)){
+      showError('Could not find any readable text in what was pasted. Try pasting plain text without unusual formatting.');
+      return;
+    }
+    await loadDocument('Pasted Text', sections);
+  }catch(err){
+    showError('Something went wrong reading the pasted text: ' + (err && err.message ? err.message : 'unknown error') + '. Please try again, or try a shorter piece of text.');
+    console.error('readPastedText failed:', err);
+  }
+}
+pasteGoBtn.addEventListener('click', readPastedText);
+pasteInput.addEventListener('keydown', (e) => {
+  if((e.key === 'Enter') && (e.metaKey || e.ctrlKey)){
+    e.preventDefault();
+    readPastedText();
   }
 });
 
@@ -617,12 +761,124 @@ function renderInsightsPanel(analysis){
 
 let autoFlagEnabled = true;
 
-function loadDocument(title, sections){
+/* ============================================================
+   LOCAL PERSISTENCE (IndexedDB) -- remembers flagged lines and
+   reading position for a document between visits. Purely a
+   convenience; nothing here is sent anywhere. If IndexedDB is
+   unavailable for any reason, everything degrades silently back
+   to the previous behavior (nothing is remembered, nothing breaks).
+   ============================================================ */
+const DB_NAME = 'read-aloud-progress';
+const DB_STORE = 'documents';
+let _dbPromise = null;
+let CURRENT_FINGERPRINT = null;
+
+function openProgressDb(){
+  if(_dbPromise) return _dbPromise;
+  _dbPromise = new Promise((resolve, reject) => {
+    if(!('indexedDB' in window)){ reject(new Error('IndexedDB unavailable')); return; }
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(DB_STORE, { keyPath: 'fingerprint' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return _dbPromise;
+}
+
+// A cheap, non-cryptographic fingerprint -- just enough to recognize
+// "probably the same document" across visits. Based on title, section
+// count, and a snippet of the first block's text, so two different
+// documents that happen to share a filename won't collide.
+function fingerprintDocument(title, sections){
+  const firstText = (sections[0] && sections[0].blocks[0] && sections[0].blocks[0].text) || '';
+  const raw = title + '|' + sections.length + '|' + firstText.slice(0, 120);
+  let hash = 0;
+  for(let i = 0; i < raw.length; i++){
+    hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+  }
+  return 'doc_' + Math.abs(hash);
+}
+
+async function saveProgress(){
+  if(!CURRENT_FINGERPRINT) return;
+  try{
+    const db = await openProgressDb();
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put({
+      fingerprint: CURRENT_FINGERPRINT,
+      title: DOC_TITLE,
+      currentSection,
+      currentBlock,
+      finishedSections: Array.from(finishedSections),
+      flaggedIssues,
+      savedAt: Date.now()
+    });
+  }catch(e){ /* best-effort only */ }
+}
+
+async function loadProgress(fingerprint){
+  try{
+    const db = await openProgressDb();
+    return await new Promise((resolve) => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(fingerprint);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  }catch(e){ return null; }
+}
+
+function showResumeBanner(savedAt, flagCount){
+  const when = new Date(savedAt).toLocaleString();
+  const banner = document.createElement('div');
+  banner.className = 'resume-banner';
+  banner.innerHTML = `
+    <span>Resumed from your last visit (${when}) -- ${flagCount} flagged line${flagCount===1?'':'s'} restored.</span>
+    <button id="dismissResumeBanner" aria-label="Dismiss">×</button>
+  `;
+  readingInner.parentElement.insertBefore(banner, readingInner);
+  document.getElementById('dismissResumeBanner').onclick = () => banner.remove();
+}
+
+/* ============================================================
+   WAKE LOCK -- keeps the screen from locking while actively
+   playing, so listening on a phone doesn't get cut off by the
+   screen timing out. Requested only during active playback,
+   released immediately on pause/stop, and re-requested if the
+   tab regains visibility mid-playback (the browser releases wake
+   locks automatically when a tab is hidden).
+   ============================================================ */
+let wakeLock = null;
+
+async function acquireWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  }catch(e){ /* permission or platform restriction -- not critical, ignore */ }
+}
+function releaseWakeLock(){
+  if(wakeLock){
+    try{ wakeLock.release(); }catch(e){}
+    wakeLock = null;
+  }
+}
+document.addEventListener('visibilitychange', async () => {
+  if(document.visibilityState === 'visible' && isPlaying && !wakeLock){
+    await acquireWakeLock();
+  }
+});
+
+async function loadDocument(title, sections){
   DOC_TITLE = title;
   SECTIONS = sections.filter(s => s.blocks.length > 0 || s.title);
   currentSection = 0;
   currentBlock = -1;
   finishedSections = new Set();
+  flaggedIssues = [];
+  CURRENT_FINGERPRINT = fingerprintDocument(title, SECTIONS);
 
   uploadScreen.style.display = 'none';
   appEl.classList.add('active');
@@ -644,10 +900,27 @@ function loadDocument(title, sections){
       }
     });
   });
-  updateFlagUI();
 
+  // Check for saved progress from a previous visit to this same
+  // document, and restore it if found.
+  const saved = await loadProgress(CURRENT_FINGERPRINT);
+  if(saved){
+    if(Array.isArray(saved.finishedSections)) finishedSections = new Set(saved.finishedSections);
+    if(Array.isArray(saved.flaggedIssues) && saved.flaggedIssues.length > flaggedIssues.length){
+      flaggedIssues = saved.flaggedIssues;
+    }
+    if(typeof saved.currentSection === 'number' && saved.currentSection < SECTIONS.length){
+      currentSection = saved.currentSection;
+    }
+  }
+
+  updateFlagUI();
   renderSectionList();
-  loadSection(0, true);
+  loadSection(currentSection, true);
+
+  if(saved){
+    showResumeBanner(saved.savedAt, flaggedIssues.length);
+  }
 }
 
 function resetToUpload(){
@@ -711,6 +984,7 @@ function loadSection(idx, scrollTop){
   renderSectionList();
   renderSectionText();
   updateProgress();
+  saveProgress();
   if(scrollTop) window.scrollTo({top:0, behavior:'instant'});
 }
 
@@ -722,6 +996,45 @@ function updateProgress(){
   nowReading.textContent = s.title;
   const track = document.getElementById('progressTrack');
   if(track) track.setAttribute('aria-valuenow', pct);
+  updateMediaSessionMetadata();
+}
+
+/* ============================================================
+   MEDIA SESSION -- shows play/pause/skip controls on the lock
+   screen and notification shade (Android, desktop OS media
+   widgets), and lets audio keep playing while you switch tabs
+   or apps. Supported well on Chrome (desktop & Android) and
+   Edge. iOS Safari is known to aggressively suspend speech
+   synthesis when the screen locks or the app fully backgrounds
+   -- that's a platform-level restriction outside what any
+   website's code can override; only a native app fully escapes
+   it. This gives the best real version available on the web.
+   ============================================================ */
+function updateMediaSessionMetadata(){
+  if(!('mediaSession' in navigator)) return;
+  const s = SECTIONS[currentSection];
+  if(!s) return;
+  try{
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: s.title,
+      artist: DOC_TITLE || 'Read Aloud',
+      album: 'Read Aloud'
+    });
+  }catch(e){ /* MediaMetadata unsupported -- ignore silently */ }
+}
+
+function setupMediaSessionHandlers(){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    navigator.mediaSession.setActionHandler('play', () => play());
+    navigator.mediaSession.setActionHandler('pause', () => pause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      document.getElementById('btnBack15').click();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      document.getElementById('btnFwd15').click();
+    });
+  }catch(e){ /* Some actions unsupported in some browsers -- ignore */ }
 }
 
 function announce(msg){
@@ -738,8 +1051,11 @@ function highlightBlock(idx){
   if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth', block:'center'}); }
 }
 
+let voicesInitialized = false;
+
 function populateVoices(){
   if(!compat.speech) return;
+  const previousSelection = voiceSelect.value;
   voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
   if(voices.length === 0) voices = speechSynthesis.getVoices();
   voiceSelect.innerHTML = '';
@@ -755,6 +1071,18 @@ function populateVoices(){
     voiceSelect.appendChild(opt);
     return;
   }
+
+  // Browsers fire "voiceschanged" more than once as voices load
+  // asynchronously. Re-running auto-selection on every firing would
+  // silently undo a choice the person already made -- so only
+  // auto-pick the first time voices are populated, or if their
+  // previous selection no longer exists in the new list.
+  const previousStillValid = previousSelection !== '' && voices[previousSelection];
+  if(voicesInitialized && previousStillValid){
+    voiceSelect.value = previousSelection;
+    return;
+  }
+  voicesInitialized = true;
 
   // Smart default: browsers list voices in an arbitrary order, and the
   // first one is often a low-quality legacy voice. Prefer names that
@@ -772,10 +1100,31 @@ function populateVoices(){
   voiceSelect.value = bestIdx;
 }
 
+// Chrome has a long-documented bug where speech synthesis silently
+// stops after roughly 15 seconds of continuous speech unless it's
+// periodically paused and resumed. A 320-character block read at
+// normal pace can run past that threshold, so this keeps it alive
+// for the duration of actual playback.
+let keepAliveInterval = null;
+function startKeepAlive(){
+  stopKeepAlive();
+  keepAliveInterval = setInterval(() => {
+    if(speechSynthesis.speaking && !speechSynthesis.paused){
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    }
+  }, 10000);
+}
+function stopKeepAlive(){
+  if(keepAliveInterval){ clearInterval(keepAliveInterval); keepAliveInterval = null; }
+}
+
 function speakFrom(blockIdx){
   const s = SECTIONS[currentSection];
   if(blockIdx >= s.blocks.length){
+    stopKeepAlive();
     finishedSections.add(currentSection);
+    saveProgress();
     renderSectionList();
     if(currentSection < SECTIONS.length - 1){
       loadSection(currentSection + 1, true);
@@ -798,6 +1147,7 @@ function speakFrom(blockIdx){
   utter.onend = () => { if(isPlaying) speakFrom(blockIdx + 1); };
   utter.onerror = () => { if(isPlaying) speakFrom(blockIdx + 1); };
   speechSynthesis.speak(utter);
+  startKeepAlive();
 }
 
 function setPlayingUI(playing){
@@ -807,18 +1157,22 @@ function setPlayingUI(playing){
   pulseDot.classList.toggle('live', playing);
   btnPlay.setAttribute('aria-pressed', playing ? 'true' : 'false');
   announce(playing ? 'Playing' : 'Paused');
+  if('mediaSession' in navigator){
+    try{ navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; }catch(e){}
+  }
 }
 
 function play(){
   if(!compat.speech) return;
+  acquireWakeLock();
   if(speechSynthesis.paused && speechSynthesis.speaking){
-    speechSynthesis.resume(); setPlayingUI(true); return;
+    speechSynthesis.resume(); setPlayingUI(true); startKeepAlive(); return;
   }
   setPlayingUI(true);
   speakFrom(currentBlock < 0 ? 0 : currentBlock);
 }
-function pause(){ try{ speechSynthesis.pause(); }catch(e){} setPlayingUI(false); }
-function stopSpeaking(){ try{ speechSynthesis.cancel(); }catch(e){} setPlayingUI(false); }
+function pause(){ stopKeepAlive(); releaseWakeLock(); try{ speechSynthesis.pause(); }catch(e){} setPlayingUI(false); }
+function stopSpeaking(){ stopKeepAlive(); releaseWakeLock(); try{ speechSynthesis.cancel(); }catch(e){} setPlayingUI(false); }
 
 btnPlay.onclick = () => { if(isPlaying){ pause(); } else { play(); } };
 if(!compat.speech){ btnPlay.disabled = true; }
@@ -870,6 +1224,7 @@ function flagCurrentBlock(){
   const el = document.getElementById('block-' + currentBlock);
   if(el) el.classList.add('flagged');
   updateFlagUI();
+  saveProgress();
   announce('Flagged. ' + flaggedIssues.length + ' line' + (flaggedIssues.length===1?'':'s') + ' flagged so far.');
 }
 
@@ -924,6 +1279,7 @@ if(compat.speech){
   speechSynthesis.onvoiceschanged = populateVoices;
   populateVoices();
 }
+setupMediaSessionHandlers();
 
 const yearEl = document.getElementById('yearNow');
 if(yearEl) yearEl.textContent = new Date().getFullYear();

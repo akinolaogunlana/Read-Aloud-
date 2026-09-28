@@ -4,20 +4,20 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Text-to-Speech for Students — Free Thesis & Essay Proofreading Tool</title>
-<meta name="description" content="Upload your essay, thesis, or assignment and hear it read back to you before you submit. Free, private, works with DOCX, PDF, and Google Docs exports."/>
+<title>Read My Essay Aloud — Free Text-to-Speech for Students & Thesis Proofreading</title>
+<meta name="description" content="Read my essay to me, free — upload your essay, paper, or thesis and hear it read back before you submit. Private, works with DOCX, PDF, and Google Docs exports."/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://readaloudproofreader.vercel.app/text-to-speech-for-students.html"/>
 <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
 
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Text-to-Speech for Students — Free Proofreading Tool"/>
-<meta property="og:description" content="Upload your essay, thesis, or assignment and hear it read back to you before you submit. Free, private, works with DOCX, PDF, and Google Docs exports."/>
+<meta property="og:title" content="Read My Essay Aloud — Free Text-to-Speech for Students"/>
+<meta property="og:description" content="Upload your essay, paper, or thesis and hear it read back to you before you submit. Free, private, works with DOCX, PDF, and Google Docs exports."/>
 <meta property="og:url" content="https://readaloudproofreader.vercel.app/text-to-speech-for-students.html"/>
 <meta property="og:site_name" content="Read Aloud"/>
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Text-to-Speech for Students — Free Proofreading Tool"/>
+<meta name="twitter:title" content="Read My Essay Aloud — Free Text-to-Speech for Students"/>
 <meta name="twitter:description" content="Upload your essay, thesis, or assignment and hear it read back to you before you submit. Free, private, works with DOCX, PDF, and Google Docs exports."/>
 
 <script type="application/ld+json">
@@ -70,12 +70,39 @@
   .other-tools h3:first-of-type{ margin-top:14px; }
   .other-tools ul{ list-style:none; padding:0; }
   .other-tools li{ margin-bottom:8px; }
+
+  .ad-slot{
+    margin:36px 0;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    background:var(--paper-raised);
+    padding:14px;
+    text-align:center;
+  }
+  .ad-label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .ad-placeholder{
+    background:repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--rule) 10px, var(--rule) 11px);
+    border:1px dashed var(--rule);
+    border-radius:8px;
+    padding:28px 12px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
   footer.site-footer{
     margin-top:44px; padding-top:20px; border-top:1px solid var(--rule);
     display:flex; gap:10px; align-items:center; font-size:12px; color:var(--ink-faint);
   }
   footer.site-footer a{ color:var(--ink-soft); }
 </style>
+<script src="ads.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -87,9 +114,14 @@
   </header>
 
   <div class="eyebrow">For students</div>
-  <h1>Hear Your Essay Before Your Professor Does</h1>
-  <p class="lede">The paragraph you've read fifteen times still has that typo — because your eyes stopped actually seeing it around read number four. Listen to it instead.</p>
+  <h1>Read My Essay Aloud, Free — Before Your Professor Does</h1>
+  <p class="lede">The paragraph you've read fifteen times still has that typo — because your eyes stopped actually seeing it around read number four. Paste your essay or upload the file and hear it instead.</p>
   <a class="cta" href="index.html">Upload your essay or thesis →</a>
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
 
   <h2>Why this helps more than one more silent read-through</h2>
@@ -104,6 +136,11 @@
   <h3>Free and private</h3>
   <p>No account, no submission to any plagiarism-style database, nothing stored. Your file is processed entirely in your own browser and discarded the moment you close the tab.</p>
   
+
+  <div class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label">Advertisement</span>
+    <div class="ad-placeholder">Ad space — responsive unit</div>
+  </div>
 
   <div class="other-tools">
     <h2>Explore Read Aloud</h2>
@@ -136,6 +173,7 @@
     <h3>Compare</h3>
     <ul>
       <li><a href="free-text-to-speech-alternative.html">Free alternative to Speechify &amp; NaturalReader</a></li>
+      <li><a href="read-aloud-browser-comparison.html">Chrome vs Edge vs Safari vs Firefox read aloud</a></li>
     </ul>
   </div>
 
