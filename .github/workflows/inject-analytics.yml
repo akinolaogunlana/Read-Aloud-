@@ -1,0 +1,91 @@
+name: Inject Google Analytics
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  inject-analytics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inject Google Analytics into HTML files
+        shell: bash
+        run: |
+          GA_ID="G-MN42CDBBZE"
+
+          python3 <<'PY'
+          import os
+          import re
+
+          GA_ID = "G-MN42CDBBZE"
+
+          GA_TAG = f'''
+          <!-- Google Analytics 4 -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{GA_ID}');
+          </script>
+          '''
+
+          for root, dirs, files in os.walk("."):
+              dirs[:] = [
+                  d for d in dirs
+                  if d not in [".git", ".github", "node_modules", ".vercel"]
+              ]
+
+              for file in files:
+                  if not file.lower().endswith(".html"):
+                      continue
+
+                  path = os.path.join(root, file)
+
+                  with open(path, "r", encoding="utf-8") as f:
+                      html = f.read()
+
+                  if GA_ID in html:
+                      print(f"SKIPPED: {path}")
+                      continue
+
+                  if not re.search(r"<head(?:\s[^>]*)?>", html, re.I):
+                      print(f"NO HEAD: {path}")
+                      continue
+
+                  html = re.sub(
+                      r"(<head(?:\s[^>]*)?>)",
+                      r"\1" + GA_TAG,
+                      html,
+                      count=1,
+                      flags=re.I
+                  )
+
+                  with open(path, "w", encoding="utf-8") as f:
+                      f.write(html)
+
+                  print(f"INJECTED: {path}")
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "*.html"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Add Google Analytics to HTML pages"
+            git push
+          fi
